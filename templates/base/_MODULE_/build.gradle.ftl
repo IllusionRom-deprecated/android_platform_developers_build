@@ -19,24 +19,38 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.6.+'
+        classpath 'com.android.tools.build:gradle:0.8.+'
     }
 }
 
 apply plugin: 'android'
 
-dependencies {
-    // Add the support lib that is appropriate for SDK ${sample.minSdk}
-<#if sample.minSdk?number < 7>
-    compile "com.android.support:support-v4:18.0.+"
-<#elseif sample.minSdk?number < 13>
-    compile "com.android.support:support-v4:18.0.+"
-    compile "com.android.support:gridlayout-v7:18.0.+"
-<#else>
-    compile "com.android.support:support-v13:18.0.+"
+<#if sample.repository?has_content>
+repositories {
+<#list sample.repository as rep>
+    ${rep}
+</#list>
+}
 </#if>
+
+dependencies {
+<#if !sample.auto_add_support_lib?has_content || sample.auto_add_support_lib == "true">
+    // Add the support lib that is appropriate for SDK ${sample.minSdk}
+  <#if sample.minSdk?number < 7>
+    compile "com.android.support:support-v4:19.0.+"
+  <#elseif sample.minSdk?number < 13>
+    compile "com.android.support:support-v4:19.0.+"
+    compile "com.android.support:gridlayout-v7:19.0.+"
+  <#else>
+    compile "com.android.support:support-v13:19.0.+"
+  </#if>
+</#if>
+
 <#list sample.dependency as dep>
     compile "${dep}"
+</#list>
+<#list sample.dependency_external as dep>
+    compile files(${dep})
 </#list>
 }
 
@@ -52,7 +66,7 @@ android {
      <#-- Note that target SDK is hardcoded in this template. We expect all samples
           to always use the most current SDK as their target. -->
     compileSdkVersion ${compile_sdk}
-    buildToolsVersion "19"
+    buildToolsVersion "19.0.1"
 
     sourceSets {
         main {
@@ -65,6 +79,13 @@ android {
         }
         instrumentTest.setRoot('tests')
         instrumentTest.java.srcDirs = ['tests/src']
+
+<#if sample.defaultConfig?has_content>
+        defaultConfig {
+        ${sample.defaultConfig}
+        }
+<#else>
+</#if>
     }
 }
 // BEGIN_EXCLUDE
